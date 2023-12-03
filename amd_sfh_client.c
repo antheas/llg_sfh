@@ -126,7 +126,7 @@ void amd_sfh_work_buffer(struct work_struct *work)
 					 in_data->input_report[i], report_size, 0);
 		}
 	}
-	schedule_delayed_work(&cli_data->work_buffer, msecs_to_jiffies(AMD_SFH_IDLE_LOOP));
+	schedule_delayed_work(&cli_data->work_buffer, msecs_to_jiffies(AMD_SFH_REFR_LOOP));
 }
 
 static u32 amd_sfh_wait_for_response(struct amd_mp2_dev *mp2, u8 sid, u32 sensor_sts)
@@ -164,7 +164,14 @@ static void amd_sfh_resume(struct amd_mp2_dev *mp2)
 
 	for (i = 0; i < cl_data->num_hid_devices; i++) {
 		if (cl_data->sensor_sts[i] == SENSOR_DISABLED) {
-			info.period = AMD_SFH_IDLE_LOOP;
+			switch (cl_data->sensor_idx[i]) {
+				case accel_idx:
+				case gyro_idx:
+					info.period = AMD_SFH_REFR_PERIOD;
+					break;
+				default:
+					info.period = AMD_SFH_IDLE_LOOP;
+			}
 			info.sensor_idx = cl_data->sensor_idx[i];
 			info.dma_address = cl_data->sensor_dma_addr[i];
 			mp2->mp2_ops->start(mp2, info);
@@ -272,7 +279,15 @@ int amd_sfh_hid_client_init(struct amd_mp2_dev *privdata)
 			rc = -ENOMEM;
 			goto cleanup;
 		}
-		info.period = AMD_SFH_IDLE_LOOP;
+
+		switch (cl_idx) {
+			case accel_idx:
+			case gyro_idx:
+				info.period = AMD_SFH_REFR_PERIOD;
+				break;
+			default:
+				info.period = AMD_SFH_IDLE_LOOP;
+		}
 		info.sensor_idx = cl_idx;
 		info.dma_address = cl_data->sensor_dma_addr[i];
 

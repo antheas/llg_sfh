@@ -23,6 +23,8 @@
 #define SENSOR_DISABLED			5
 
 #define AMD_SFH_IDLE_LOOP		200
+#define AMD_SFH_REFR_LOOP		5
+#define AMD_SFH_REFR_PERIOD		10
 
 enum cmd_id {
 	NO_OP,
